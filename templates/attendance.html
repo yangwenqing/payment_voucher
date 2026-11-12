@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}考勤{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <header class="panel-head row">
+    <div>
+      <h2>考勤与工资测算 <span class="chip">{{ month }}</span></h2>
+      <p class="hint">
+        线上合计 = 1500 × 线上 ÷ 应出勤；线下合计 = 应发薪资 × 线下 ÷ 应出勤；总计 = 线上合计 + 线下合计 + 奖金。
+        修改后自动实时保存；费用类型为「工资 / 技术服务费」时，制单页会按此表默认填充金额。
+      </p>
+    </div>
+    <div class="att-toolbar">
+      <input type="month" id="attMonth" class="att-month" value="{{ month_input }}">
+      <button class="btn ghost" id="attSwitch">切换</button>
+      <button class="btn primary" id="attExport">导出工资测算依据表</button>
+    </div>
+  </header>
+
+  {% if rows %}
+  <div class="table-wrap att-wrap">
+    <table class="data-table att-table">
+      <thead>
+        <tr>
+          <th>姓名 / 身份</th>
+          <th>应发薪资</th>
+          <th>应出勤</th>
+          <th>线上</th>
+          <th>线下</th>
+          <th>请假</th>
+          <th>缺勤</th>
+          <th>奖金</th>
+          <th class="num-col">线上合计</th>
+          <th class="num-col">线下合计</th>
+          <th class="num-col">总计</th>
+          <th>备注</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="att-row" data-person-id="{{ r.person_id }}" data-name="{{ r.name }}">
+          <td><strong>{{ r.name }}</strong><span class="sub">{{ r.identity }}</span></td>
+          {% for field in ['salary', 'expected_days', 'online_days', 'offline_days', 'leave_days', 'absent_days', 'bonus'] %}
+          <td><input class="att-input" data-field="{{ field }}" inputmode="decimal"
+                     value="{{ r[field] if r[field] is not none else '' }}"></td>
+          {% endfor %}
+          <td class="num-col mono" data-computed="online_amount">{{ r.online_amount if r.online_amount is not none else '—' }}</td>
+          <td class="num-col mono" data-computed="offline_amount">{{ r.offline_amount if r.offline_amount is not none else '—' }}</td>
+          <td class="num-col mono strong" data-computed="total_amount">{{ r.total_amount if r.total_amount is not none else '—' }}</td>
+          <td><input class="att-input att-note" data-field="note" data-note="{{ r.note or '' }}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>人员库为空，请先到「设置」页导入人员。</p>
+    <a class="btn primary" href="{{ url_for('settings') }}">去设置</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>window.__PAGE__ = "attendance"; window.__MONTH__ = "{{ month }}";</script>
+{% endblock %}

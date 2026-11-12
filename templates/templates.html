@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}模板{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <header class="panel-head row">
+    <div>
+      <h2>支付模板</h2>
+      <p class="hint">模板固定人员与账户信息，仅允许调整费用类型、金额与月份。</p>
+    </div>
+    <a class="btn ghost" href="{{ url_for('index') }}">新建凭单</a>
+  </header>
+
+  {% if rows %}
+  <div class="cards">
+    {% for r in rows %}
+    <article class="tpl-card" data-id="{{ r.id }}">
+      <header>
+        <h3>{{ r.title }}</h3>
+        <span class="pill">{{ r.identity }}</span>
+      </header>
+      <dl class="kv">
+        <div><dt>收款人</dt><dd>{{ r.name }}</dd></div>
+        <div><dt>银行账号</dt><dd class="mono">{{ r.bank_account or '—' }}</dd></div>
+        <div><dt>开户行</dt><dd class="ellipsis">{{ r.bank_name or '—' }}</dd></div>
+        <div><dt>费用类型</dt><dd>{{ r.fee_type or '—' }}</dd></div>
+        <div><dt>默认金额</dt><dd class="mono">{{ ('¥ ' ~ (r.amount|money)) if r.amount else '—' }}</dd></div>
+        <div><dt>月份</dt><dd>{{ r.period_month or '—' }}</dd></div>
+        <div><dt>入职 / 到期</dt><dd class="mono">{{ r.hire_date|d }} / {{ r.contract_end|d }}</dd></div>
+      </dl>
+      <footer class="card-actions">
+        <a class="btn primary small" href="{{ url_for('index') }}?template_id={{ r.id }}">使用模板</a>
+        <button class="btn ghost small" data-edit="{{ r.id }}">编辑细项</button>
+        <button class="link danger" data-del="{{ r.id }}">删除</button>
+      </footer>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>还没有模板。在制单页填写信息后点击「存为模板」即可保存。</p>
+    <a class="btn primary" href="{{ url_for('index') }}">去制单</a>
+  </div>
+  {% endif %}
+</section>
+
+<dialog id="tplDialog" class="dialog">
+  <form method="dialog" id="tplForm">
+    <h3>编辑模板细项</h3>
+    <p class="hint" id="tplDialogHint">未填写时使用默认值。</p>
+    <input type="hidden" id="tplId">
+    <label class="field"><span>模板名称</span><input id="tplTitle" required></label>
+    <div class="grid">
+      <label class="field">
+        <span>费用类型</span>
+        <select id="tplFeeType">
+          <option value="">—</option>
+          {% for item in fee_types %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>薪资</span><input id="tplSalary" inputmode="decimal"></label>
+      <label class="field"><span>默认金额</span><input id="tplAmount" inputmode="decimal"></label>
+      <label class="field"><span>月份（含年份）</span><input type="month" id="tplPeriod"></label>
+      <label class="field"><span>银行卡号</span><input id="tplBankAccount" inputmode="numeric"></label>
+      <label class="field"><span>开户行</span><input id="tplBankName"></label>
+    </div>
+    <footer class="dialog-actions">
+      <button class="btn text" type="button" data-close>取消</button>
+      <button class="btn primary" type="submit">保存修改</button>
+    </footer>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>window.__PAGE__ = "templates";</script>
+{% endblock %}

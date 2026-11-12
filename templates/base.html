@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}制单{% endblock %} · 支付凭单生成台</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v={{ static_v }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="seal">凭</span>
+      <span class="brand-text">
+        <strong>支付凭单生成台</strong>
+        <small>PAYMENT&nbsp;VOUCHER&nbsp;WORKBENCH</small>
+      </span>
+    </a>
+    <nav class="nav">
+      <a href="{{ url_for('index') }}" class="{{ 'on' if page == 'index' }}">制单</a>
+      <a href="{{ url_for('batch') }}" class="{{ 'on' if page == 'batch' }}">批量</a>
+      <a href="{{ url_for('attendance') }}" class="{{ 'on' if page == 'attendance' }}">考勤</a>
+      <a href="{{ url_for('history') }}" class="{{ 'on' if page == 'history' }}">记录</a>
+      <a href="{{ url_for('templates') }}" class="{{ 'on' if page == 'templates' }}">模板</a>
+      <a href="{{ url_for('settings') }}" class="{{ 'on' if page == 'settings' }}">设置</a>
+      {% if current_user %}
+      <form method="post" action="{{ url_for('logout') }}" class="logout-form">
+        <button class="btn text small" type="submit" title="退出登录">{{ current_user }} · 退出</button>
+      </form>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% if not db_ok %}
+  <div class="alert">
+    {% if db_ready %}
+    数据库 <code>{{ db_name }}</code> 暂不可连接，请检查 PostgreSQL 服务与连接参数，
+    或到「设置」页修改后保存。
+    {% else %}
+    数据库尚未配置：请到「设置」页填写主机、数据库名、用户名与密码并保存（配置将加密存储）。
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <main class="shell">{% block content %}{% endblock %}</main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='app.js') }}?v={{ static_v }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

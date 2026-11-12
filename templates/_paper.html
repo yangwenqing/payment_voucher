@@ -1,0 +1,30 @@
+<div class="paper" aria-label="支付凭单预览">
+  <h1 class="paper-title u-line">支&nbsp;出&nbsp;凭&nbsp;单</h1>
+  <div class="paper-meta">
+    <span>{{ ctx.date_text }}</span>
+    <span class="paper-no">第&nbsp;{{ ctx.serial_no if ctx.serial_no != '' else '&nbsp;&nbsp;' }}&nbsp;号</span>
+  </div>
+
+  <div class="paper-frame">
+    <p class="p-line">
+      <span>即&nbsp;&nbsp;&nbsp;&nbsp;付&nbsp;</span><span class="u-dotted">{{ ctx.line1_body }}</span>
+    </p>
+    <p class="p-line p-spacer">&nbsp;</p>
+    <p class="p-kuan"><span class="u-dotted p-kuan-lead"></span><span>款</span></p>
+    <p class="p-line">&nbsp;</p>
+    <p class="p-amount">
+      <span>计人民币</span>
+      <span class="p-upper u-dotted">{{ ctx.amount_upper }}</span>
+      <span class="u-dotted p-upper-tail"></span>
+      <span class="p-symbol">¥</span>
+      <span class="p-number u-line">{{ ctx.amount_str }}</span>
+    </p>
+    <p class="p-line">&nbsp;</p>
+    <p class="p-sign">
+      <span>领款人：&nbsp;&nbsp;<span class="u-dotted">{{ ctx.name }}</span></span>
+      <span>主管审批：<span class="u-line p-sign-tail"></span></span>
+    </p>
+  </div>
+
+  <div class="paper-foot">财务总监&emsp;&emsp;记账&emsp;&emsp;出纳&emsp;&emsp;审核&emsp;&emsp;制单</div>
+</div>

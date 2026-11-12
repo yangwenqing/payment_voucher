@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}批量{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <header class="panel-head row">
+    <div>
+      <h2>批量生成凭单</h2>
+      <p class="hint">勾选人员并编辑费用类型与金额，生成时所有凭单合并到同一个 docx 文件，每张凭单独占一页。</p>
+    </div>
+    <div class="att-toolbar">
+      <label class="field-inline">年月 <input type="month" id="batchMonth" value="{{ month_input }}"></label>
+      <label class="field-inline">制单日期 <input type="date" id="batchDate" value="{{ today }}"></label>
+      <button class="btn ghost" id="batchFillBtn">按考勤填充金额</button>
+    </div>
+  </header>
+
+  {% if persons %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" id="batchAll" title="全选"></th>
+          <th>姓名 / 身份</th>
+          <th>银行账号</th>
+          <th>开户行</th>
+          <th>费用类型</th>
+          <th>支付金额</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in persons %}
+        <tr class="batch-row" data-person-id="{{ p.id }}"
+            data-name="{{ p.name }}" data-identity="{{ p.identity }}"
+            data-hire="{{ p.hire_date|d }}" data-contract="{{ p.contract_end|d }}"
+            data-bank-name="{{ p.bank_name }}" data-bank-account="{{ p.bank_account }}">
+          <td class="check-col"><input type="checkbox" class="batch-check" data-person-id="{{ p.id }}"></td>
+          <td><strong>{{ p.name }}</strong><span class="sub">{{ p.identity }}</span></td>
+          <td class="mono">{{ p.bank_account or '—' }}</td>
+          <td class="ellipsis" title="{{ p.bank_name }}">{{ p.bank_name or '—' }}</td>
+          <td>
+            <select class="batch-fee">
+              {% for item in fee_types %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}
+            </select>
+          </td>
+          <td><input class="batch-amount" inputmode="decimal" placeholder="金额"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="actions batch-actions">
+    <button class="btn primary" id="batchGenBtn">批量生成并下载</button>
+    <span class="hint" id="batchState"></span>
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>人员库为空，请先到「设置」页导入人员。</p>
+    <a class="btn primary" href="{{ url_for('settings') }}">去设置</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>window.__PAGE__ = "batch"; window.__MONTH__ = "{{ month }}";</script>
+{% endblock %}

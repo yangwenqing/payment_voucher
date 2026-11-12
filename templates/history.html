@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}记录{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <header class="panel-head row">
+    <div>
+      <h2>历史凭单</h2>
+      <p class="hint">共 {{ rows|length }} 条记录，可直接修改细项后重新生成文件。</p>
+    </div>
+    <form class="search" method="get" action="{{ url_for('history') }}">
+      <input name="q" value="{{ keyword }}" placeholder="姓名 / 身份 / 费用类型 / 账号 / 编号">
+      <button class="btn ghost" type="submit">查询</button>
+    </form>
+  </header>
+
+  {% if rows %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>编号</th><th>日期</th><th>姓名 / 身份</th><th>费用类型</th>
+          <th class="num-col">金额</th><th>开户行</th><th class="act-col">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr data-id="{{ r.id }}">
+          <td class="mono">第 {{ r.serial_no }} 号</td>
+          <td class="mono">{{ r.voucher_date|d }}</td>
+          <td><strong>{{ r.name }}</strong><span class="sub">{{ r.identity }}{% if r.period_month %} · {{ r.period_month }}{% endif %}</span></td>
+          <td>{{ r.fee_type or '—' }}</td>
+          <td class="num-col mono">¥ {{ r.amount|money }}</td>
+          <td class="ellipsis" title="{{ r.bank_name }}">{{ r.bank_name or '—' }}</td>
+          <td class="act-col">
+            <a class="link" href="{{ url_for('index') }}?voucher_id={{ r.id }}">编辑</a>
+            <a class="link" href="{{ url_for('api_voucher_docx', voucher_id=r.id) }}">下载 docx</a>
+            <button class="link danger" data-del="{{ r.id }}">删除</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>暂无凭单记录。</p>
+    <a class="btn primary" href="{{ url_for('index') }}">去制单</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__PAGE__ = "history";
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>登录 · 支付凭单生成台</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <style>
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-card { width: min(400px, 100%); }
+    .login-card .panel-head { padding-bottom: 8px; }
+    .login-form { padding: 20px 26px 26px; display: grid; gap: 16px; }
+    .login-error {
+      margin: 0;
+      padding: 10px 14px;
+      border-left: 3px solid #d24a2c;
+      background: rgba(210, 74, 44, .07);
+      color: #a3331d;
+      font-size: 13px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <section class="panel login-card">
+      <header class="panel-head">
+        <h2>{{ '初始化管理员' if setup else '登录' }}</h2>
+        <p class="hint">
+          {% if setup %}
+          首次使用：请设置管理员账号与密码（密码至少 6 位），保存后即可进入系统。
+          {% else %}
+          支付凭单生成台，请输入管理员账号与密码。
+          {% endif %}
+        </p>
+      </header>
+      <form class="login-form" method="post" action="{{ url_for('login') }}">
+        <input type="hidden" name="next" value="{{ next }}">
+        {% if error %}<p class="login-error">{{ error }}</p>{% endif %}
+        <label class="field">
+          <span>账号</span>
+          <input name="username" placeholder="admin" autocomplete="username" required>
+        </label>
+        <label class="field">
+          <span>密码</span>
+          <input name="password" type="password" placeholder="请输入密码"
+                 autocomplete="{{ 'new-password' if setup else 'current-password' }}" required>
+        </label>
+        <button class="btn primary" type="submit">{{ '创建并登录' if setup else '登录' }}</button>
+      </form>
+    </section>
+  </div>
+</body>
+</html>

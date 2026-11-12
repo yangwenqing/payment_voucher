@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}制单{% endblock %}
+
+{% block content %}
+<div class="workbench">
+  <section class="panel form-panel">
+    <header class="panel-head">
+      <h2 id="modeTitle">新制凭单</h2>
+      <p class="hint" id="modeHint">填写收款信息，右侧实时预览版式，确认无误后生成 docx 文件。</p>
+    </header>
+
+    <form id="voucherForm" autocomplete="off" novalidate>
+      <input type="hidden" id="recordId" value="">
+      <input type="hidden" id="personId" value="">
+
+      <fieldset class="section">
+        <legend><span class="num">壹</span>收款人</legend>
+        <div class="grid">
+          <label class="field span2">
+            <span>人员库</span>
+            <select id="personPick">
+              <option value="">— 手动填写 —</option>
+              {% for p in persons %}
+              <option value="{{ p.id }}">{{ p.name }} · {{ p.identity }}{% if p.bank_account %} · {{ p.bank_account[-4:] }}{% endif %}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="field">
+            <span>姓名 <i>*</i></span>
+            <input id="name" name="name" required placeholder="如 张三">
+          </label>
+          <label class="field">
+            <span>身份 <i>*</i>
+              <button type="button" class="mini" data-add="identity" title="新增身份">＋</button>
+            </span>
+            <select id="identity" name="identity" required>
+              {% for item in identities %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="field">
+            <span>入职时间</span>
+            <input type="date" id="hire_date" name="hire_date">
+          </label>
+          <label class="field">
+            <span>合同到期</span>
+            <input type="date" id="contract_end" name="contract_end">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="section">
+        <legend><span class="num">贰</span>账户与款项</legend>
+        <div class="grid">
+          <label class="field span2">
+            <span>开户行 <i>*</i></span>
+            <input id="bank_name" name="bank_name"  placeholder="如 xxxxxx">
+          </label>
+          <label class="field">
+            <span>银行账号 <i>*</i></span>
+            <input id="bank_account" name="bank_account" inputmode="numeric"  placeholder="1234567890">
+          </label>
+          <label class="field">
+            <span>费用类型 <i>*</i>
+              <button type="button" class="mini" data-add="fee-type" title="新增费用类型">＋</button>
+            </span>
+            <select id="fee_type" name="fee_type" required>
+              {% if not fee_types %}<option value="">请先在设置页添加费用类型</option>{% endif %}
+              {% for item in fee_types %}<option value="{{ item.name }}" {% if loop.first %}selected{% endif %}>{{ item.name }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="field">
+            <span>支付金额 <i>*</i></span>
+            <input id="amount" name="amount" inputmode="decimal"  placeholder="如 0">
+          </label>
+          <label class="field">
+            <span>费用所属月份（含年份）</span>
+            <input type="month" id="period_month" name="period_month" value="{{ month_input }}">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="section">
+        <legend><span class="num">叁</span>凭单信息</legend>
+        <div class="grid">
+          <label class="field">
+            <span>制单日期</span>
+            <input type="date" id="voucher_date" name="voucher_date" value="{{ today }}">
+          </label>
+          <label class="field">
+            <span>编号</span>
+            <input id="serialNo" value="生成时自动编号" readonly class="readonly">
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="btn primary" id="submitBtn">生成凭单并下载</button>
+        <button type="button" class="btn ghost" id="previewBtn">刷新预览</button>
+        <button type="button" class="btn ghost" id="saveTemplateBtn">存为模板</button>
+        <a class="btn text" href="{{ url_for('index') }}" id="resetLink">清空</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="panel preview-panel">
+    <header class="panel-head row">
+      <div>
+        <h2>版式预览</h2>
+        <p class="hint">按《支 出 凭 单.docx》母版渲染，导出结果与此一致。</p>
+      </div>
+      <span class="pill" id="previewState">待生成</span>
+    </header>
+    <div class="preview-slot" id="previewSlot">
+      <div class="paper placeholder">填写左侧信息后将在此呈现凭单</div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>window.__MODE__ = "create";</script>
+{% endblock %}

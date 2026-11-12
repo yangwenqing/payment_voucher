@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}设置{% endblock %}
+
+{% block content %}
+<div class="stack">
+  <section class="panel">
+    <header class="panel-head">
+      <h2>身份与费用类型</h2>
+      <p class="hint">字典项会即时出现在制单页的下拉框中，删除后已生成的凭单不受影响。</p>
+    </header>
+    <div class="dict-grid">
+      <div class="dict-block">
+        <h3>身份</h3>
+        <div class="chips" id="identityChips">
+          {% for item in identities %}
+          <span class="chip" data-kind="identity" data-id="{{ item.id }}">
+            {{ item.name }}<button class="chip-x" title="删除">×</button>
+          </span>
+          {% endfor %}
+        </div>
+        <form class="inline-form" data-kind="identity">
+          <input name="name" placeholder="新增身份，如 项目顾问" required>
+          <button class="btn ghost small" type="submit">添加</button>
+        </form>
+      </div>
+
+      <div class="dict-block">
+        <h3>费用类型</h3>
+        <div class="chips" id="feeChips">
+          {% for item in fee_types %}
+          <span class="chip" data-kind="fee-type" data-id="{{ item.id }}">
+            {{ item.name }}<button class="chip-x" title="删除">×</button>
+          </span>
+          {% endfor %}
+        </div>
+        <form class="inline-form" data-kind="fee-type">
+          <input name="name" placeholder="新增费用类型" required>
+          <button class="btn ghost small" type="submit">添加</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <header class="panel-head row">
+      <div>
+        <h2>人员库</h2>
+        <p class="hint">人员库用于快速填充收款信息；支持上传任意表格文件（xlsx / xlsm / xls / csv / tsv）批量导入，表头需包含“姓名”列。</p>
+      </div>
+      <form id="importForm" class="import-form">
+        <input type="file" id="importFile" accept=".xlsx,.xlsm,.xls,.csv,.tsv,.txt" hidden>
+        <button class="btn ghost" type="button" data-action="import">导入表格文件…</button>
+      </form>
+    </header>
+
+    {% if persons %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>姓名</th><th>身份</th><th>薪资</th><th>入职</th><th>合同到期</th><th>开户行</th><th>银行账号</th><th class="act-col">操作</th></tr>
+        </thead>
+        <tbody>
+          {% for p in persons %}
+          <tr data-person-id="{{ p.id }}"
+              data-name="{{ p.name }}" data-identity="{{ p.identity }}" data-salary="{{ p.salary if p.salary is not none else '' }}"
+              data-hire="{{ p.hire_date|d }}" data-contract="{{ p.contract_end|d }}"
+              data-bank-name="{{ p.bank_name }}" data-bank-account="{{ p.bank_account }}">
+            <td><strong>{{ p.name }}</strong></td>
+            <td>{{ p.identity }}</td>
+            <td class="mono">{{ p.salary if p.salary is not none else '—' }}</td>
+            <td class="mono">{{ p.hire_date|d }}</td>
+            <td class="mono">{{ p.contract_end|d }}</td>
+            <td class="ellipsis" title="{{ p.bank_name }}">{{ p.bank_name or '—' }}</td>
+            <td class="mono">{{ p.bank_account or '—' }}</td>
+            <td class="act-col">
+              <button class="link" data-edit-person="{{ p.id }}">编辑</button>
+              <button class="link danger" data-del-person="{{ p.id }}">删除</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><p>人员库为空，点击右上角导入。</p></div>
+    {% endif %}
+  </section>
+
+  <section class="panel quiet">
+    <header class="panel-head">
+      <h2>数据库连接</h2>
+      <p class="hint">
+        当前库：<code>{{ db_name }}</code>。
+        连接信息保存后以加密形式存储在本机配置文件中，密码不会明文落盘；留空密码表示沿用已保存的密码。
+      </p>
+    </header>
+    <form id="dbConfigForm" class="db-config-form">
+      <div class="db-grid">
+        <label class="field"><span>主机 <i>*</i></span><input name="host" placeholder="localhost"></label>
+        <label class="field"><span>端口</span><input name="port" placeholder="5432" inputmode="numeric"></label>
+        <label class="field"><span>数据库名 <i>*</i></span><input name="dbname" placeholder="payment_voucher"></label>
+        <label class="field"><span>用户名 <i>*</i></span><input name="user" autocomplete="off"></label>
+        <label class="field"><span>密码</span><input name="password" type="password" placeholder="留空则沿用已保存密码" autocomplete="new-password"></label>
+      </div>
+      <div class="db-actions">
+        <button class="btn primary small" type="submit">保存并测试连接</button>
+        <span id="dbConfigState" class="hint"></span>
+      </div>
+    </form>
+  </section>
+</div>
+
+<dialog id="personDialog" class="dialog">
+  <form method="dialog" id="personForm">
+    <h3>编辑人员</h3>
+    <input type="hidden" id="personEditId">
+    <div class="grid">
+      <label class="field"><span>姓名 <i>*</i></span><input id="personEditName" required></label>
+      <label class="field"><span>身份</span>
+        <select id="personEditIdentity">
+          {% for item in identities %}<option value="{{ item.name }}">{{ item.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>薪资</span><input id="personEditSalary" inputmode="decimal" placeholder="可为空"></label>
+      <label class="field"><span>起始时间</span><input type="date" id="personEditHire"></label>
+      <label class="field"><span>截止时间</span><input type="date" id="personEditContract"></label>
+      <label class="field"><span>开户行</span><input id="personEditBank"></label>
+      <label class="field"><span>银行卡号</span><input id="personEditAccount" inputmode="numeric"></label>
+    </div>
+    <footer class="dialog-actions">
+      <button class="btn text" type="button" data-close>取消</button>
+      <button class="btn primary" type="submit">保存</button>
+    </footer>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>window.__PAGE__ = "settings";</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+# 密钥与加密配置
+secret.key
+db_config.json
+
+# PostgreSQL 数据库数据目录（含全部业务数据）
+data/
+
+# 运行产物与缓存
+output/
+logfile
+__pycache__/
+*.pyc
